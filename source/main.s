@@ -26,12 +26,7 @@ loop$:
         .unreq pinNum
         .unreq pinVal
 
-        # Wait a little while
-        mov r2,#0x3F0000
-wait1$:
-        sub r2,#1
-        cmp r2,#0
-        bne wait1$
+        bl Sleep
 
         # Turn on pin (i.e. turn light off)
         pinNum .req r0
@@ -42,12 +37,7 @@ wait1$:
         .unreq pinNum
         .unreq pinVal
 
-        # Wait a little while
-        mov r2,#0x3F0000
-wait2$:
-        sub r2,#1
-        cmp r2,#0
-        bne wait2$
+        bl Sleep
 
         # Back to the start
         b loop$
