@@ -26,6 +26,11 @@ loop$:
         .unreq pinNum
         .unreq pinVal
 
+
+        # Sleep for about 0.5s
+        # 5e5 = 5e3 * 1000 ~ 500 * 2^10
+        mov r0,#500
+        lsl r0,#10
         bl Sleep
 
         # Turn on pin (i.e. turn light off)
@@ -37,6 +42,8 @@ loop$:
         .unreq pinNum
         .unreq pinVal
 
+        mov r0,#500
+        lsl r0,#10
         bl Sleep
 
         # Back to the start
