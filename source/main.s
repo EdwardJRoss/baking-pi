@@ -1,22 +1,30 @@
         .section .init
         .globl _start
 _start:
+        b main
 
-        # Store address of GPIO Controller
-        ldr r0,=0x20200000
+.section .text
+main:
+        # Move into the text section
+        mov sp,#0x8000
 
-        # Enable output on 16th GPIO Pin
-        # In 6th set of 3 bits (6*3=18)
-        mov r1,#1
-        lsl r1,#18
-        str r1,[r0,#4]
+        pinNum .req r0
+        pinFunc .req r1
+        mov pinNum,#16
+        mov pinFunc,#1
+        bl SetGpioFunction
+        .unreq pinNum
+        .unreq pinFunc
 
-        # Store adress of GPIO 16 in r1
-        mov r1,#1
-        lsl r1,#16
 loop$:
         # Turn off pin (i.e. turn light on)
-        str r1,[r0,#40]
+        pinNum .req r0
+        pinVal .req r1
+        mov pinNum,#16
+        mov pinVal,#0
+        bl SetGpio
+        .unreq pinNum
+        .unreq pinVal
 
         # Wait a little while
         mov r2,#0x3F0000
@@ -26,7 +34,13 @@ wait1$:
         bne wait1$
 
         # Turn on pin (i.e. turn light off)
-        str r1,[r0,#28]
+        pinNum .req r0
+        pinVal .req r1
+        mov pinNum,#16
+        mov pinVal,#1
+        bl SetGpio
+        .unreq pinNum
+        .unreq pinVal
 
         # Wait a little while
         mov r2,#0x3F0000
