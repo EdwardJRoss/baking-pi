@@ -29,7 +29,9 @@ str r0,[r1]
 mov pc,lr
 
 .globl DrawPixel
-/* Set the Pixel as (x,y)=(r0, r1) to foreColour at graphicsAddress */
+/* Set the Pixel as (x,y)=(r0, r1) to foreColour at graphicsAddress.
+Returns: Input coordinates (x,y)
+ */
 DrawPixel:
         x .req r0
         y .req r1
@@ -63,15 +65,15 @@ DrawPixel:
         /* Assume high colour */
         /* address = baseAddress + 2 * (x + width * y) */
         /* x <- x + width * y */
-        mla x, y, width, x
-        .unreq y
+        mla r3, y, width, x
         .unreq width
-        /* addr <- 2*(x + width * y) */
-        add addr, x, lsl #1
         .unreq x
+        .unreq y
+        /* addr <- 2*(x + width * y) */
+        add addr, r3, lsl #1
 
 /* Load in the forecolour */
-        colour .req r0
+        colour .req r3
         ldr colour,=foreColour
         ldrh colour,[colour]
 
@@ -81,3 +83,74 @@ DrawPixel:
         .unreq addr
 
         mov pc,lr
+
+.globl DrawLine
+/* Draw a line from (x0, y0) to (x1, y1)
+   Uses Brenesham's Algorithm */
+DrawLine:
+        x0 .req r0
+        y0 .req r1
+
+        push {r4, r5, r6, r7, r8, r9, r10, lr}
+
+        x1 .req r9
+        y1 .req r10
+        mov x1,r2
+        mov y1,r3
+
+
+        dx .req r4
+        ndy .req r5
+        sx .req r6
+        sy .req r7
+        error .req r8
+
+        /* Initialise the direction of x */
+        cmp x1,x0
+        subgt dx, x1, x0
+        movgt sx,#1
+        suble dx, x0, x1
+        movle sx,#-1
+
+        /* Initialise the direction of y.
+           Use negative dy for convenience. */
+        cmp y1,y0
+        subgt ndy, y0, y1
+        movgt sy,#1
+        suble ndy, y1,y0
+        movle sy,#-1
+
+        add error, dx, ndy
+
+        add x1, sx
+        add y1, sy
+
+        /* Main loop */
+lineLoop$:
+        /* When we've reached the end then return */
+        teq x0, x1
+        teqne y0, y1
+        popeq {r4, r5, r6, r7, r8, r9, r10, pc}
+
+        /* Note: Since DrawPixel retuns its inputs x0 and y0 are preserved */
+        bl DrawPixel
+
+        cmp ndy, error, lsl #1
+        addle x0, sx
+        addle error, ndy
+
+        cmp dx, error, lsl #1
+        addge y0, sy
+        addge error, dx
+
+        b lineLoop$
+
+        .unreq x0
+        .unreq x1
+        .unreq y0
+        .unreq y1
+        .unreq sx
+        .unreq sy
+        .unreq dx
+        .unreq ndy
+        .unreq error

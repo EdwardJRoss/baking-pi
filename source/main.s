@@ -53,16 +53,15 @@ render$:
             movhs r0,#0
             bl SetForeColour
 
-            x .req r6
-            /* We could read this in from the framebuffer info ...*/
-            mov x, #1024
-            drawPixel$:
-                mov r0,x
-                mov r1,y
-                bl DrawPixel
-                sub x,#1
-                teq x,#0
-                bne drawPixel$
+
+            /* Draw a slightly sloped line */
+            mov r0,#0
+            mov r1,y
+            mov r2,#1024
+            sub r3,y,#50
+            bl DrawLine
+
+
 
 
             sub y,#1
@@ -71,6 +70,5 @@ render$:
 
         b render$
 
-    .unreq x
     .unreq y
     .unreq colour
