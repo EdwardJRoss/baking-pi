@@ -33,36 +33,44 @@ error$:
         b error$
 
 noError$:
-        fbInfoAddr .req r4
-        mov fbInfoAddr,r0
+        /* The address of the Framebuffer is in r0
+           Returned by InitialiseFrameBuffer.
+           Store it as the Graphics Address */
+        bl SetGraphicsAddress
 
         /* Draw to the screen */
+        colour .req r4
+        mov colour,#0
 render$:
-        fbAddr .req r3
-        ldr fbAddr,[fbInfoAddr,#32]
 
-        /* Arbitrary colour */
-        colour .req r0
-        y .req r1
+        y .req r5
         /* We could read this in from the framebuffer info ...*/
         mov y,#768
         drawRow$:
-            x .req r2
+            add colour,#1
+            mov r0, colour
+            cmp r0,#0x10000
+            movhs r0,#0
+            bl SetForeColour
+
+            x .req r6
             /* We could read this in from the framebuffer info ...*/
             mov x, #1024
             drawPixel$:
-                strh colour,[fbAddr]
-                add fbAddr,#2
+                mov r0,x
+                mov r1,y
+                bl DrawPixel
                 sub x,#1
                 teq x,#0
                 bne drawPixel$
 
+
             sub y,#1
-            add colour,#1
             teq y,#0
             bne drawRow$
 
         b render$
 
-    .unreq fbAddr
-    .unreq fbInfoAddr
+    .unreq x
+    .unreq y
+    .unreq colour
