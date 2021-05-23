@@ -38,37 +38,58 @@ noError$:
            Store it as the Graphics Address */
         bl SetGraphicsAddress
 
-        /* Draw to the screen */
         colour .req r4
+        x .req r5
+        y .req r6
+        lastx .req r7
+        lasty .req r8
+        seed .req r9
+        /* Initialise to 0 */
         mov colour,#0
+        mov lastx,#0
+        mov lasty,#0
+        mov seed,#0
 render$:
-
-        y .req r5
-        /* We could read this in from the framebuffer info ...*/
-        mov y,#768
-        drawRow$:
-            add colour,#1
-            mov r0, colour
-            cmp r0,#0x10000
-            movhs r0,#0
-            bl SetForeColour
+        /* Increment the colour */
+        add colour,#1
+        cmp colour,#0x10000
+        movhs colour,#0
+        mov r0, colour
+        bl SetForeColour
 
 
-            /* Draw a slightly sloped line */
-            mov r0,#0
-            mov r1,y
-            mov r2,#1024
-            sub r3,y,#50
-            bl DrawLine
+        /* Generate random x and y */
+        mov r0,seed
+        bl Random
+        mov x,r0
+
+        bl Random
+        mov y,r0
+        mov seed,r0
+
+        /* Shift x and y to valid range */
+        lsr x,#22
+        lsr y,#22
+        /* If y not in 0-767 then try again */
+        cmp y,#768
+        bhs render$
 
 
+        mov r0, lastx
+        mov r1, lasty
+        mov r2, x
+        mov r3, y
+        bl DrawLine
 
+        mov lastx, x
+        mov lasty, y
 
-            sub y,#1
-            teq y,#0
-            bne drawRow$
 
         b render$
 
+    .unreq x
     .unreq y
     .unreq colour
+    .unreq lastx
+    .unreq lasty
+    .unreq seed
