@@ -38,58 +38,52 @@ noError$:
            Store it as the Graphics Address */
         bl SetGraphicsAddress
 
-        colour .req r4
-        x .req r5
-        y .req r6
-        lastx .req r7
-        lasty .req r8
-        seed .req r9
-        /* Initialise to 0 */
-        mov colour,#0
-        mov lastx,#0
-        mov lasty,#0
-        mov seed,#0
-render$:
-        /* Increment the colour */
-        add colour,#1
-        cmp colour,#0x10000
-        movhs colour,#0
-        mov r0, colour
+        /* Initialise colour */
+        mov r0,#0x10000
+        sub r0,#1
         bl SetForeColour
 
-
-        /* Generate random x and y */
-        mov r0,seed
-        bl Random
-        mov x,r0
-
-        bl Random
-        mov y,r0
-        mov seed,r0
-
-        /* Shift x and y to valid range */
-        lsr x,#22
-        lsr y,#22
-        /* If y not in 0-767 then try again */
-        cmp y,#768
-        bhs render$
-
-
-        mov r0, lastx
-        mov r1, lasty
-        mov r2, x
-        mov r3, y
+        mov r0,#0
+        mov r1,#70
+        mov r2,#1024
+        mov r3,#70
         bl DrawLine
 
-        mov lastx, x
-        mov lasty, y
+        mov r0,#0
+        mov r1,#30
+        mov r2,#1024
+        mov r3,#30
+        bl DrawLine
 
+        mov r0,#30
+        mov r1,#0
+        mov r2,#30
+        mov r3,#768
+        bl DrawLine
 
+        mov r0,#70
+        mov r1,#0
+        mov r2,#70
+        mov r3,#768
+        bl DrawLine
+
+        mov r0,#0x41
+        mov r1,#50
+        mov r2,#50
+        bl DrawCharacter
+
+        mov r0,#0x42
+        mov r1,#58
+        mov r2,#50
+        bl DrawCharacter
+
+        teq r0,#8
+        bne render$
+
+        /* Turn on OK LED when done */
+        mov r0,#16
+        mov r1,#0
+        bl SetGpio
+
+render$:
         b render$
-
-    .unreq x
-    .unreq y
-    .unreq colour
-    .unreq lastx
-    .unreq lasty
-    .unreq seed

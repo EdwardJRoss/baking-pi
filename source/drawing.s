@@ -9,6 +9,11 @@ foreColour:
 graphicsAddress:
 .int 0
 
+/* Fonts */
+.align 4
+font:
+.incbin "font.bin"
+
 .section .text
 .globl SetForeColour
 /* Set the foreground colour to r0 */
@@ -154,3 +159,66 @@ lineLoop$:
         .unreq dx
         .unreq ndy
         .unreq error
+
+/* DrawCharacter draws a character at x,y
+     - r0 : ASCII character to draw (0-127)
+     - r1 : x co-ordinate to draw at
+     - r2 : y co-ordinate to draw at
+*/
+.globl DrawCharacter
+DrawCharacter:
+        char .req r0
+
+        /* Validate character */
+        cmp char,#128
+        movhs pc,lr
+
+        push {r5, r6, r7, r8, r9, r10, lr}
+
+        x .req r5
+        y .req r6
+        mov x, r1
+        mov y, r2
+
+        /* Get character address */
+        addr .req r7
+        ldr addr,=font
+        /* Each chacacter is 16=2^4 bytes */
+        add addr, char, lsl #4
+        .unreq char
+
+        row .req r8
+        bits .req r9
+        bit .req r10
+
+
+        /* Loop through the rows and DrawPixel */
+        mov row, #0
+rowChar$:
+        ldr bits, [addr, row]
+
+        mov bit, #0
+colChar$:
+        tst bits, #1
+        addne r0, x, bit
+        addne r1, y, row
+        blne DrawPixel
+
+        add bit, #1
+        lsr bits, #1
+        teq bit, #8
+        bne colChar$
+
+        add row, #1
+        teq row,#16
+        bne rowChar$
+
+        .unreq row
+        .unreq addr
+        .unreq bits
+        .unreq bit
+
+        mov r0,#8
+        mov r1,#16
+
+        pop {r5, r6, r7, r8, r9, r10, pc}
