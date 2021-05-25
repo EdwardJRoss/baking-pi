@@ -173,52 +173,52 @@ DrawCharacter:
         cmp char,#128
         movhs pc,lr
 
-        push {r5, r6, r7, r8, r9, r10, lr}
-
-        x .req r5
-        y .req r6
-        mov x, r1
-        mov y, r2
+        push {r5, r6, lr}
 
         /* Get character address */
-        addr .req r7
+        addr .req r5
         ldr addr,=font
         /* Each chacacter is 16=2^4 bytes */
         add addr, char, lsl #4
         .unreq char
 
-        row .req r8
-        bits .req r9
-        bit .req r10
+        x .req r0
+        y .req r1
+        mov x, r1
+        mov y, r2
 
+
+        bits .req r6
 
         /* Loop through the rows and DrawPixel */
-        mov row, #0
 rowChar$:
-        ldr bits, [addr, row]
+        ldr bits, [addr]
+        and bits, #0xFF
+        orr bits, #0x1000
 
-        mov bit, #0
 colChar$:
         tst bits, #1
-        addne r0, x, bit
-        addne r1, y, row
+        /* We could optimise a lot more by inlining DrawPixel */
         blne DrawPixel
 
-        add bit, #1
         lsr bits, #1
-        teq bit, #8
+        add x, #1
+        teq bits, #0x10
         bne colChar$
 
-        add row, #1
-        teq row,#16
+        sub x, #8
+        add y, #1
+        add addr, #1
+        /* Since font address is 4 bit aligned initially ends with 0000
+           Know we have gone through every bit when ends with 1111
+        */
+        tst addr, #0b1111
         bne rowChar$
 
-        .unreq row
         .unreq addr
         .unreq bits
-        .unreq bit
 
         mov r0,#8
         mov r1,#16
 
-        pop {r5, r6, r7, r8, r9, r10, pc}
+        pop {r5, r6, pc}

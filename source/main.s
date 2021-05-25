@@ -77,6 +77,21 @@ noError$:
         mov r2,#50
         bl DrawCharacter
 
+        mov r0,#0x43
+        mov r1,#64
+        mov r2,#50
+        bl DrawCharacter
+
+        mov r0,#0x44
+        mov r1,#72
+        mov r2,#50
+        bl DrawCharacter
+
+        mov r0,#0x45
+        mov r1,#80
+        mov r2,#50
+        bl DrawCharacter
+
         teq r0,#8
         bne render$
 
