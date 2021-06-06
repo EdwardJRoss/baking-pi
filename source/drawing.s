@@ -173,10 +173,10 @@ DrawCharacter:
         cmp char,#128
         movhs pc,lr
 
-        push {r5, r6, lr}
+        push {r4, r5, lr}
 
         /* Get character address */
-        addr .req r5
+        addr .req r4
         ldr addr,=font
         /* Each chacacter is 16=2^4 bytes */
         add addr, char, lsl #4
@@ -188,7 +188,7 @@ DrawCharacter:
         mov y, r2
 
 
-        bits .req r6
+        bits .req r5
 
         /* Loop through the rows and DrawPixel */
 rowChar$:
@@ -217,8 +217,10 @@ colChar$:
 
         .unreq addr
         .unreq bits
+        .unreq x
+        .unreq y
 
         mov r0,#8
         mov r1,#16
 
-        pop {r5, r6, pc}
+        pop {r4, r5, pc}
