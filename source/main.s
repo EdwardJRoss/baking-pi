@@ -3,6 +3,16 @@
 _start:
         b main
 
+
+.section .data
+.align 2
+inputString:
+.hword 0x4241
+.hword 0x4309
+.hword 0x440a
+.hword 0x4509
+.hword 0x4746
+
 .section .text
 main:
         /* Move into the text section */
@@ -67,33 +77,11 @@ noError$:
         mov r3,#768
         bl DrawLine
 
-        mov r0,#0x41
-        mov r1,#50
+        ldr r0,=inputString
+        mov r1,#10
         mov r2,#50
-        bl DrawCharacter
-
-        mov r0,#0x42
-        mov r1,#58
-        mov r2,#50
-        bl DrawCharacter
-
-        mov r0,#0x43
-        mov r1,#64
-        mov r2,#50
-        bl DrawCharacter
-
-        mov r0,#0x44
-        mov r1,#72
-        mov r2,#50
-        bl DrawCharacter
-
-        mov r0,#0x45
-        mov r1,#80
-        mov r2,#50
-        bl DrawCharacter
-
-        teq r0,#8
-        bne render$
+        mov r3,#50
+        bl DrawString
 
         /* Turn on OK LED when done */
         mov r0,#16

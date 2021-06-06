@@ -224,3 +224,83 @@ colChar$:
         mov r1,#16
 
         pop {r4, r5, pc}
+
+
+.globl DrawString
+
+/* Draws a string of characters from memory
+     r0 - address of string
+     r1 - length of string
+     x  - x coordinate to draw to
+     y - y coordinate to draw to
+*/
+DrawString:
+        push {r4, r5, r6, r7, r8, r9, r10, r11, r12, lr}
+
+        x .req r4
+        y .req r5
+        addr .req r6
+        pos .req r7
+        x0 .req r8
+        length .req r9
+
+        mov addr, r0
+        mov length, r1
+        mov x, r2
+        mov y, r3
+        mov x0, x
+
+        mov pos, #0
+eachChar$:
+        char .req r10
+
+        ldrb char, [addr]
+
+        mov r0, char
+        mov r1, x
+        mov r2, y
+        bl DrawCharacter
+
+        cwidth .req r0
+        cheight .req r1
+
+        /* Linefeed */
+        cmp char, #0x0a
+        moveq x, x0
+        addeq y, cheight
+        beq endChar$
+        .unreq cheight
+
+        /* Horizontal Tab */
+        cmp char, #0x09
+        addeq cwidth, cwidth, lsl #2
+        moveq r1, x0
+        beq tabLoop$
+
+        add x, cwidth
+        b endChar$
+
+tabLoop$:
+        cmp r1, x
+        movhi x, r1
+        bhi endChar$
+        add r1, cwidth
+        b tabLoop$
+
+        .unreq cwidth
+
+endChar$:
+        add pos,#1
+        add addr,#1
+        cmp pos, length
+        bls eachChar$
+
+        .unreq length
+        .unreq pos
+        .unreq x0
+        .unreq x
+        .unreq y
+        .unreq addr
+        .unreq char
+
+        pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
