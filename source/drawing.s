@@ -235,12 +235,12 @@ colChar$:
      y - y coordinate to draw to
 */
 DrawString:
-        push {r4, r5, r6, r7, r8, r9, r10, r11, r12, lr}
+        push {r4, r5, r6, r7, r8, r9, lr}
 
         x .req r4
         y .req r5
         addr .req r6
-        pos .req r7
+        char .req r7
         x0 .req r8
         length .req r9
 
@@ -250,10 +250,9 @@ DrawString:
         mov y, r3
         mov x0, x
 
-        mov pos, #0
 eachChar$:
-        char .req r10
-
+        cmp length, #0
+        beq endString$
         ldrb char, [addr]
 
         mov r0, char
@@ -278,7 +277,11 @@ eachChar$:
         beq tabLoop$
 
         add x, cwidth
-        b endChar$
+
+endChar$:
+        add addr,#1
+        sub length, #1
+        b eachChar$
 
 tabLoop$:
         cmp r1, x
@@ -286,21 +289,15 @@ tabLoop$:
         bhi endChar$
         add r1, cwidth
         b tabLoop$
-
         .unreq cwidth
 
-endChar$:
-        add pos,#1
-        add addr,#1
-        cmp pos, length
-        bls eachChar$
 
+endString$:
         .unreq length
-        .unreq pos
         .unreq x0
         .unreq x
         .unreq y
         .unreq addr
         .unreq char
 
-        pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
+        pop {r4, r5, r6, r7, r8, r9, pc}
