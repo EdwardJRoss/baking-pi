@@ -235,14 +235,13 @@ colChar$:
      y - y coordinate to draw to
 */
 DrawString:
-        push {r4, r5, r6, r7, r8, r9, lr}
+        push {r4, r5, r6, r7, r8, lr}
 
         x .req r4
         y .req r5
         addr .req r6
-        char .req r7
-        x0 .req r8
-        length .req r9
+        x0 .req r7
+        length .req r8
 
         mov addr, r0
         mov length, r1
@@ -251,31 +250,28 @@ DrawString:
         mov x0, x
 
 eachChar$:
+        char .req r0
+
         cmp length, #0
-        beq endString$
+        popeq {r4, r5, r6, r7, r8, pc}
         ldrb char, [addr]
 
-        mov r0, char
         mov r1, x
         mov r2, y
-        bl DrawCharacter
+
+        cmp char, #'\n'
+        beq lineFeed$
+
+        cmp char, #'\t'
+        beq horizontalTab$
+
+        .unreq char
 
         cwidth .req r0
         cheight .req r1
 
-        /* Linefeed */
-        cmp char, #0x0a
-        moveq x, x0
-        addeq y, cheight
-        beq endChar$
-        .unreq cheight
 
-        /* Horizontal Tab */
-        cmp char, #0x09
-        addeq cwidth, cwidth, lsl #2
-        moveq r1, x0
-        beq tabLoop$
-
+        bl DrawCharacter
         add x, cwidth
 
 endChar$:
@@ -283,21 +279,29 @@ endChar$:
         sub length, #1
         b eachChar$
 
+lineFeed$:
+        bl DrawCharacter
+
+        mov x, x0
+        add y, cheight
+        b endChar$
+
+horizontalTab$:
+        bl DrawCharacter
+        add cwidth, cwidth, lsl #2
+        mov r1, x0
 tabLoop$:
         cmp r1, x
         movhi x, r1
         bhi endChar$
         add r1, cwidth
         b tabLoop$
+
         .unreq cwidth
+        .unreq cheight
 
-
-endString$:
         .unreq length
         .unreq x0
         .unreq x
         .unreq y
         .unreq addr
-        .unreq char
-
-        pop {r4, r5, r6, r7, r8, r9, pc}
